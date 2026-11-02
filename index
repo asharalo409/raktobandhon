@@ -1,0 +1,1643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mihomo Gate</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.16/index.min.css">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg-primary: #0f1117;
+    --bg-secondary: #161922;
+    --bg-tertiary: #1c2030;
+    --bg-card: #1a1e2e;
+    --bg-hover: #252a3a;
+    --border: #2a2e3e;
+    --text-primary: #e8eaf0;
+    --text-secondary: #8b90a0;
+    --text-muted: #5c6170;
+    --accent: #6366f1;
+    --accent-hover: #818cf8;
+    --accent-glow: rgba(99, 102, 241, 0.3);
+    --success: #22c55e;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --info: #3b82f6;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 4px 24px rgba(0,0,0,0.3);
+    --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  .app { display: flex; min-height: 100vh; }
+
+  /* Sidebar */
+  .sidebar {
+    width: 260px;
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 100;
+    transition: var(--transition);
+  }
+  .sidebar.collapsed { transform: translateX(-260px); }
+  .logo {
+    padding: 24px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .logo-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, var(--accent), #a855f7);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+  }
+  .logo-text { font-size: 18px; font-weight: 700; letter-spacing: -0.5px; }
+  .logo-text span { color: var(--accent); }
+  .nav { flex: 1; padding: 12px; }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: var(--transition);
+    margin-bottom: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    user-select: none;
+  }
+  .nav-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+  .nav-item.active { background: var(--accent); color: white; }
+  .nav-item svg { width: 20px; height: 20px; flex-shrink: 0; }
+  .nav-badge {
+    margin-left: auto;
+    background: var(--danger);
+    color: white;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+  .sidebar-footer {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+  }
+  .status-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--success);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  /* Main Content */
+  .main { flex: 1; margin-left: 260px; transition: var(--transition); }
+  .main.expanded { margin-left: 0; }
+
+  /* Header */
+  .header {
+    height: 64px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    gap: 16px;
+  }
+  .menu-toggle {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: var(--transition);
+  }
+  .menu-toggle:hover { color: var(--text-primary); background: var(--bg-hover); }
+  .header-title { font-size: 16px; font-weight: 600; }
+  .header-spacer { flex: 1; }
+  .header-actions { display: flex; align-items: center; gap: 8px; }
+  .header-btn {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: var(--transition);
+    position: relative;
+  }
+  .header-btn:hover { color: var(--text-primary); background: var(--bg-hover); }
+  .header-btn .badge {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 8px;
+    height: 8px;
+    background: var(--danger);
+    border-radius: 50%;
+  }
+
+  /* Content */
+  .content { padding: 24px; }
+  .page { display: none; animation: fadeIn 0.3s ease; }
+  .page.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Stats Grid */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    transition: var(--transition);
+  }
+  .stat-card:hover { border-color: var(--accent); box-shadow: 0 0 20px var(--accent-glow); }
+  .stat-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .stat-label { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
+  .stat-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .stat-icon.blue { background: rgba(59, 130, 246, 0.15); color: var(--info); }
+  .stat-icon.green { background: rgba(34, 197, 94, 0.15); color: var(--success); }
+  .stat-icon.purple { background: rgba(168, 85, 247, 0.15); color: #a855f7; }
+  .stat-icon.orange { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+  .stat-value { font-size: 28px; font-weight: 700; letter-spacing: -1px; }
+  .stat-change { font-size: 12px; color: var(--success); margin-top: 4px; }
+  .stat-change.down { color: var(--danger); }
+
+  /* Cards */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .card-title { font-size: 15px; font-weight: 600; }
+  .card-body { padding: 20px; }
+
+  /* Chart Area */
+  .chart-container { position: relative; height: 250px; }
+  .chart-canvas { width: 100%; height: 100%; }
+
+  /* Proxy Groups */
+  .proxy-group {
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-sm);
+    margin-bottom: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .proxy-group-header {
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: var(--transition);
+  }
+  .proxy-group-header:hover { background: var(--bg-hover); }
+  .proxy-group-info { display: flex; align-items: center; gap: 10px; }
+  .proxy-group-name { font-size: 14px; font-weight: 600; }
+  .proxy-group-type {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+  .type-select { background: rgba(99, 102, 241, 0.2); color: var(--accent); }
+  .type-fallback { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
+  .type-urltest { background: rgba(34, 197, 94, 0.2); color: var(--success); }
+  .type-load { background: rgba(168, 85, 247, 0.2); color: #a855f7; }
+  .proxy-group-current { font-size: 12px; color: var(--text-secondary); }
+  .proxy-group-toggle {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    background: var(--bg-hover);
+    color: var(--text-secondary);
+    transition: var(--transition);
+  }
+  .proxy-group-toggle.open { transform: rotate(180deg); }
+  .proxy-list { padding: 8px; display: none; }
+  .proxy-list.open { display: block; }
+  .proxy-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: var(--transition);
+    gap: 12px;
+    margin-bottom: 2px;
+  }
+  .proxy-item:hover { background: var(--bg-hover); }
+  .proxy-item.active { background: rgba(99, 102, 241, 0.15); }
+  .proxy-radio {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--border);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .proxy-item.active .proxy-radio {
+    border-color: var(--accent);
+  }
+  .proxy-item.active .proxy-radio::after {
+    content: '';
+    width: 8px;
+    height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+  }
+  .proxy-name { flex: 1; font-size: 13px; }
+  .proxy-delay {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+  }
+  .delay-fast { background: rgba(34, 197, 94, 0.15); color: var(--success); }
+  .delay-medium { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+  .delay-slow { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+  .delay-timeout { background: rgba(92, 97, 112, 0.15); color: var(--text-muted); }
+
+  /* Connections Table */
+  .table-wrapper { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    text-align: left;
+    padding: 12px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  td {
+    padding: 12px 16px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  tr:hover td { background: var(--bg-hover); }
+  .chain-tag {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    background: rgba(99, 102, 241, 0.15);
+    color: var(--accent);
+  }
+  .protocol-tag {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .proto-tcp { background: rgba(59, 130, 246, 0.15); color: var(--info); }
+  .proto-udp { background: rgba(168, 85, 247, 0.15); color: #a855f7; }
+
+  /* Rules */
+  .rule-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    gap: 12px;
+    transition: var(--transition);
+  }
+  .rule-item:hover { background: var(--bg-hover); }
+  .rule-index {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-tertiary);
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+  .rule-type {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    background: rgba(59, 130, 246, 0.15);
+    color: var(--info);
+    min-width: 70px;
+    text-align: center;
+  }
+  .rule-payload { flex: 1; font-size: 13px; font-family: 'SF Mono', 'Fira Code', monospace; }
+  .rule-proxy { font-size: 13px; color: var(--accent); font-weight: 500; }
+
+  /* Logs */
+  .log-container {
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+    font-size: 12px;
+    line-height: 1.8;
+    max-height: 500px;
+    overflow-y: auto;
+    background: var(--bg-primary);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+  }
+  .log-entry { display: flex; gap: 12px; }
+  .log-time { color: var(--text-muted); flex-shrink: 0; }
+  .log-level {
+    font-weight: 600;
+    flex-shrink: 0;
+    width: 50px;
+  }
+  .log-level.info { color: var(--info); }
+  .log-level.warn { color: var(--warning); }
+  .log-level.error { color: var(--danger); }
+  .log-level.debug { color: var(--text-muted); }
+  .log-msg { color: var(--text-secondary); word-break: break-all; }
+
+  /* Search Input */
+  .search-box {
+    display: flex;
+    align-items: center;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 0 12px;
+    transition: var(--transition);
+  }
+  .search-box:focus-within { border-color: var(--accent); }
+  .search-box svg { width: 16px; height: 16px; color: var(--text-muted); }
+  .search-box input {
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    padding: 8px;
+    font-size: 13px;
+    outline: none;
+    width: 180px;
+  }
+  .search-box input::placeholder { color: var(--text-muted); }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: inherit;
+  }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-secondary { background: var(--bg-tertiary); color: var(--text-secondary); border: 1px solid var(--border); }
+  .btn-secondary:hover { color: var(--text-primary); border-color: var(--text-muted); }
+  .btn-danger { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+  .btn-danger:hover { background: rgba(239, 68, 68, 0.25); }
+  .btn svg { width: 16px; height: 16px; }
+
+  /* Filter Bar */
+  .filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .filter-btn {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: inherit;
+  }
+  .filter-btn:hover { color: var(--text-primary); }
+  .filter-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .sidebar { transform: translateX(-260px); }
+    .sidebar.open { transform: translateX(0); }
+    .main { margin-left: 0 !important; }
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .content { padding: 16px; }
+    .header { padding: 0 16px; }
+  }
+  @media (max-width: 480px) {
+    .stats-grid { grid-template-columns: 1fr; }
+  }
+
+  /* Speed Chart */
+  .speed-chart {
+    width: 100%;
+    height: 200px;
+    position: relative;
+  }
+  .speed-chart svg { width: 100%; height: 100%; }
+
+  /* Toggle Switch */
+  .toggle {
+    width: 40px;
+    height: 22px;
+    background: var(--border);
+    border-radius: 11px;
+    position: relative;
+    cursor: pointer;
+    transition: var(--transition);
+  }
+  .toggle.active { background: var(--accent); }
+  .toggle::after {
+    content: '';
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    background: white;
+    border-radius: 50%;
+    top: 2px;
+    left: 2px;
+    transition: var(--transition);
+  }
+  .toggle.active::after { left: 20px; }
+
+  /* Settings */
+  .setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .setting-row:last-child { border-bottom: none; }
+  .setting-info { flex: 1; }
+  .setting-label { font-size: 14px; font-weight: 500; }
+  .setting-desc { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+
+  /* Empty State */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+  }
+  .empty-state svg { width: 64px; height: 64px; margin-bottom: 16px; opacity: 0.5; }
+  .empty-state p { font-size: 14px; }
+
+  /* Tooltip */
+  .tooltip {
+    position: relative;
+  }
+  .tooltip::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 4px 8px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 11px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: var(--transition);
+  }
+  .tooltip:hover::after { opacity: 1; bottom: calc(100% + 8px); }
+
+  /* Overlay for mobile sidebar */
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 99;
+  }
+  .overlay.active { display: block; }
+
+  /* Grid for dashboard */
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 1024px) {
+    .dashboard-grid { grid-template-columns: 1fr; }
+  }
+
+  /* Traffic bar */
+  .traffic-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .traffic-bar-track {
+    flex: 1;
+    height: 4px;
+    background: var(--bg-primary);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .traffic-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.5s ease;
+  }
+  .traffic-bar-fill.upload { background: var(--info); }
+  .traffic-bar-fill.download { background: var(--success); }
+
+  /* Connection detail modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
+    animation: modalIn 0.3s ease;
+  }
+  @keyframes modalIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+  .modal-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .modal-header h3 { font-size: 15px; font-weight: 600; }
+  .modal-close {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: var(--bg-tertiary);
+    border-radius: 6px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: var(--transition);
+  }
+  .modal-close:hover { color: var(--text-primary); }
+  .modal-body { padding: 20px; }
+  .detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .detail-row:last-child { border-bottom: none; }
+  .detail-label { color: var(--text-secondary); }
+  .detail-value { font-weight: 500; text-align: right; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- Overlay -->
+  <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="logo">
+      <div class="logo-icon">⚡</div>
+      <div class="logo-text">Mihomo<span>Gate</span></div>
+    </div>
+    <nav class="nav">
+      <div class="nav-item active" data-page="dashboard" onclick="switchPage('dashboard')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Dashboard
+      </div>
+      <div class="nav-item" data-page="proxies" onclick="switchPage('proxies')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        Proxies
+        <span class="nav-badge">12</span>
+      </div>
+      <div class="nav-item" data-page="connections" onclick="switchPage('connections')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Connections
+      </div>
+      <div class="nav-item" data-page="rules" onclick="switchPage('rules')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        Rules
+      </div>
+      <div class="nav-item" data-page="logs" onclick="switchPage('logs')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Logs
+      </div>
+      <div class="nav-item" data-page="settings" onclick="switchPage('settings')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Settings
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="status-bar">
+        <div class="status-dot"></div>
+        <span>Connected · v1.18.7</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main" id="main">
+    <!-- Header -->
+    <header class="header">
+      <button class="menu-toggle" onclick="toggleSidebar()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <span class="header-title" id="pageTitle">Dashboard</span>
+      <div class="header-spacer"></div>
+      <div class="header-actions">
+        <div class="search-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" placeholder="Search..." id="globalSearch" oninput="handleSearch(this.value)">
+        </div>
+        <button class="header-btn tooltip" data-tip="Reload" onclick="reloadConfig()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        </button>
+        <button class="header-btn tooltip" data-tip="Notifications">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="badge"></span>
+        </button>
+      </div>
+    </header>
+
+    <div class="content">
+      <!-- Dashboard Page -->
+      <div class="page active" id="page-dashboard">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-label">Total Upload</span>
+              <div class="stat-icon blue">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+              </div>
+            </div>
+            <div class="stat-value" id="totalUpload">2.4 GB</div>
+            <div class="traffic-bar">
+              <div class="traffic-bar-track"><div class="traffic-bar-fill upload" style="width: 65%"></div></div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-label">Total Download</span>
+              <div class="stat-icon green">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+              </div>
+            </div>
+            <div class="stat-value" id="totalDownload">18.7 GB</div>
+            <div class="traffic-bar">
+              <div class="traffic-bar-track"><div class="traffic-bar-fill download" style="width: 82%"></div></div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-label">Active Connections</span>
+              <div class="stat-icon purple">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              </div>
+            </div>
+            <div class="stat-value" id="activeConns">47</div>
+            <div class="stat-change">+3 in last hour</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-label">Uptime</span>
+              <div class="stat-icon orange">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              </div>
+            </div>
+            <div class="stat-value" id="uptime">3d 14h</div>
+            <div class="stat-change">Since Jan 12, 2025</div>
+          </div>
+        </div>
+
+        <div class="dashboard-grid">
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Traffic Speed</span>
+              <div style="display:flex;gap:16px;font-size:12px;">
+                <span style="color:var(--success);">● Download</span>
+                <span style="color:var(--info);">● Upload</span>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="speed-chart" id="speedChart"></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Quick Actions</span>
+            </div>
+            <div class="card-body" style="display:flex;flex-direction:column;gap:10px;">
+              <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="testAllProxies()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                Test All Proxies
+              </button>
+              <button class="btn btn-secondary" style="width:100%;justify-content:center;" onclick="flushFakeIP()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                Flush Fake IP
+              </button>
+              <button class="btn btn-secondary" style="width:100%;justify-content:center;" onclick="reloadConfig()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                Reload Config
+              </button>
+              <button class="btn btn-danger" style="width:100%;justify-content:center;" onclick="closeAllConns()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                Close All Connections
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top Connections -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Top Connections</span>
+            <button class="btn btn-secondary" onclick="switchPage('connections')">View All</button>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Host</th>
+                  <th>Chain</th>
+                  <th>Protocol</th>
+                  <th>Upload</th>
+                  <th>Download</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>github.com</td>
+                  <td><span class="chain-tag">US-Node</span></td>
+                  <td><span class="protocol-tag proto-tcp">TCP</span></td>
+                  <td>12.4 MB</td>
+                  <td>45.2 MB</td>
+                </tr>
+                <tr>
+                  <td>api.openai.com</td>
+                  <td><span class="chain-tag">JP-Node</span></td>
+                  <td><span class="protocol-tag proto-tcp">TCP</span></td>
+                  <td>8.1 MB</td>
+                  <td>23.7 MB</td>
+                </tr>
+                <tr>
+                  <td>youtube.com</td>
+                  <td><span class="chain-tag">SG-Node</span></td>
+                  <td><span class="protocol-tag proto-udp">UDP</span></td>
+                  <td>2.3 MB</td>
+                  <td>156.8 MB</td>
+                </tr>
+                <tr>
+                  <td>cdn.jsdelivr.net</td>
+                  <td><span class="chain-tag">HK-Node</span></td>
+                  <td><span class="protocol-tag proto-tcp">TCP</span></td>
+                  <td>1.2 MB</td>
+                  <td>34.5 MB</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Proxies Page -->
+      <div class="page" id="page-proxies">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Proxy Groups</span>
+            <div class="filter-bar">
+              <button class="filter-btn active" onclick="filterProxies('all', this)">All</button>
+              <button class="filter-btn" onclick="filterProxies('select', this)">Select</button>
+              <button class="filter-btn" onclick="filterProxies('fallback', this)">Fallback</button>
+              <button class="filter-btn" onclick="filterProxies('url-test', this)">URL-Test</button>
+            </div>
+          </div>
+          <div class="card-body" id="proxyGroups">
+            <!-- Generated by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Connections Page -->
+      <div class="page" id="page-connections">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Active Connections (<span id="connCount">47</span>)</span>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-danger" onclick="closeAllConns()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                Close All
+              </button>
+            </div>
+          </div>
+          <div class="card-body" style="padding:0;">
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Host</th>
+                    <th>Type</th>
+                    <th>Chain</th>
+                    <th>Rule</th>
+                    <th>Protocol</th>
+                    <th>Upload</th>
+                    <th>Download</th>
+                    <th>Source</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="connectionsBody">
+                  <!-- Generated by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rules Page -->
+      <div class="page" id="page-rules">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Rules (<span id="ruleCount">24</span>)</span>
+            <div class="search-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" placeholder="Search rules..." oninput="filterRules(this.value)">
+            </div>
+          </div>
+          <div class="card-body" style="padding:0;">
+            <div id="rulesList">
+              <!-- Generated by JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Logs Page -->
+      <div class="page" id="page-logs">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Logs</span>
+            <div class="filter-bar">
+              <button class="filter-btn active" onclick="filterLogs('all', this)">All</button>
+              <button class="filter-btn" onclick="filterLogs('info', this)">Info</button>
+              <button class="filter-btn" onclick="filterLogs('warn', this)">Warn</button>
+              <button class="filter-btn" onclick="filterLogs('error', this)">Error</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="log-container" id="logContainer">
+              <!-- Generated by JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings Page -->
+      <div class="page" id="page-settings">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">General Settings</span>
+          </div>
+          <div class="card-body">
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">Allow LAN</div>
+                <div class="setting-desc">Allow other devices on the same network to use this proxy</div>
+              </div>
+              <div class="toggle" id="toggleLan" onclick="toggleSetting(this)"></div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">IPv6</div>
+                <div class="setting-desc">Enable IPv6 support</div>
+              </div>
+              <div class="toggle" id="toggleIpv6" onclick="toggleSetting(this)"></div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">TUN Mode</div>
+                <div class="setting-desc">Route all traffic through TUN device</div>
+              </div>
+              <div class="toggle active" id="toggleTun" onclick="toggleSetting(this)"></div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">Fake IP Filter</div>
+                <div class="setting-desc">Use fake IP address for DNS resolution</div>
+              </div>
+              <div class="toggle active" id="toggleFakeIP" onclick="toggleSetting(this)"></div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">Sniffing</div>
+                <div class="setting-desc">Sniff protocol from traffic</div>
+              </div>
+              <div class="toggle active" id="toggleSniffing" onclick="toggleSetting(this)"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Connection Info</span>
+          </div>
+          <div class="card-body">
+            <div class="detail-row">
+              <span class="detail-label">Listen</span>
+              <span class="detail-value">127.0.0.1:7890</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">SOCKS5 Port</span>
+              <span class="detail-value">7891</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Redir Port</span>
+              <span class="detail-value">7892</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Mixed Port</span>
+              <span class="detail-value">7890</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">TProxy Port</span>
+              <span class="detail-value">7893</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">API Port</span>
+              <span class="detail-value">9090</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">About</span>
+          </div>
+          <div class="card-body">
+            <div class="detail-row">
+              <span class="detail-label">Version</span>
+              <span class="detail-value">Mihomo v1.18.7</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Dashboard</span>
+              <span class="detail-value">MihomoGate v2.0</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Kernel</span>
+              <span class="detail-value">Meta</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Connection Detail Modal -->
+<div class="modal-overlay" id="connModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Connection Details</h3>
+      <button class="modal-close" onclick="closeModal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="connModalBody">
+    </div>
+  </div>
+</div>
+
+<script>
+// Page Management
+const pageTitles = {
+  dashboard: 'Dashboard',
+  proxies: 'Proxies',
+  connections: 'Connections',
+  rules: 'Rules',
+  logs: 'Logs',
+  settings: 'Settings'
+};
+
+function switchPage(pageId) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + pageId).classList.add('active');
+  document.querySelector(`.nav-item[data-page="${pageId}"]`).classList.add('active');
+  document.getElementById('pageTitle').textContent = pageTitles[pageId];
+  if (window.innerWidth < 768) toggleSidebar();
+}
+
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const main = document.getElementById('main');
+  const overlay = document.getElementById('overlay');
+  if (window.innerWidth < 768) {
+    sidebar.classList.toggle('open');
+    overlay.classList.toggle('active');
+  } else {
+    sidebar.classList.toggle('collapsed');
+    main.classList.toggle('expanded');
+  }
+}
+
+// Speed Chart
+const speedData = { download: [], upload: [] };
+const maxPoints = 30;
+
+function initSpeedData() {
+  for (let i = 0; i < maxPoints; i++) {
+    speedData.download.push(Math.random() * 5 + 1);
+    speedData.upload.push(Math.random() * 2 + 0.5);
+  }
+}
+
+function updateSpeedData() {
+  speedData.download.push(Math.random() * 8 + 2);
+  speedData.upload.push(Math.random() * 3 + 0.5);
+  if (speedData.download.length > maxPoints) speedData.download.shift();
+  if (speedData.upload.length > maxPoints) speedData.upload.shift();
+  renderSpeedChart();
+}
+
+function renderSpeedChart() {
+  const container = document.getElementById('speedChart');
+  if (!container) return;
+  const width = container.clientWidth || 600;
+  const height = 200;
+  const padding = 30;
+  const chartW = width - padding * 2;
+  const chartH = height - padding * 2;
+  const maxVal = Math.max(...speedData.download, ...speedData.upload, 10);
+
+  function buildPath(data, color, fillColor) {
+    const stepX = chartW / (maxPoints - 1);
+    let pathD = '';
+    let areaD = '';
+    data.forEach((val, idx) => {
+      const x = padding + idx * stepX;
+      const y = padding + chartH - (val / maxVal) * chartH;
+      if (idx === 0) {
+        pathD += `M ${x} ${y}`;
+        areaD += `M ${x} ${padding + chartH} L ${x} ${y}`;
+      } else {
+        pathD += ` L ${x} ${y}`;
+        areaD += ` L ${x} ${y}`;
+      }
+      if (idx === data.length - 1) {
+        areaD += ` L ${x} ${padding + chartH} Z`;
+      }
+    });
+    return { pathD, areaD, fillColor };
+  }
+
+  const dl = buildPath(speedData.download, '#22c55e', 'rgba(34,197,94,0.1)');
+  const ul = buildPath(speedData.upload, '#3b82f6', 'rgba(59,130,246,0.1)');
+
+  container.innerHTML = `
+    <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="gradDl" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="rgba(34,197,94,0.3)"/>
+          <stop offset="100%" stop-color="rgba(34,197,94,0)"/>
+        </linearGradient>
+        <linearGradient id="gradUl" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="rgba(59,130,246,0.3)"/>
+          <stop offset="100%" stop-color="rgba(59,130,246,0)"/>
+        </linearGradient>
+      </defs>
+      <!-- Grid lines -->
+      ${[0, 0.25, 0.5, 0.75, 1].map(pct => {
+        const y = padding + chartH * (1 - pct);
+        return `<line x1="${padding}" y1="${y}" x2="${width - padding}" y2="${y}" stroke="var(--border)" stroke-width="0.5"/>`;
+      }).join('')}
+      <!-- Download area -->
+      <path d="${dl.areaD}" fill="url(#gradDl)"/>
+      <path d="${dl.pathD}" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <!-- Upload area -->
+      <path d="${ul.areaD}" fill="url(#gradUl)"/>
+      <path d="${ul.pathD}" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <!-- Current values -->
+      <text x="${padding}" y="${padding - 5}" fill="var(--text-secondary)" font-size="10">${maxVal.toFixed(0)} MB/s</text>
+      <text x="${padding}" y="${height - 5}" fill="var(--text-muted)" font-size="9">30s ago</text>
+      <text x="${width - padding}" y="${height - 5}" fill="var(--text-muted)" font-size="9" text-anchor="end">Now</text>
+    </svg>
+  `;
+}
+
+// Proxy Data
+const proxyGroupsData = [
+  {
+    name: 'Global',
+    type: 'Select',
+    typeClass: 'type-select',
+    current: 'JP-Node-1',
+    proxies: [
+      { name: 'JP-Node-1', delay: 45 },
+      { name: 'US-Node-1', delay: 120 },
+      { name: 'SG-Node-1', delay: 89 },
+      { name: 'HK-Node-1', delay: 32 },
+      { name: 'KR-Node-1', delay: 67 },
+      { name: 'TW-Node-1', delay: 55 },
+    ]
+  },
+  {
+    name: 'Auto',
+    type: 'URL-Test',
+    typeClass: 'type-urltest',
+    current: 'HK-Node-1',
+    proxies: [
+      { name: 'HK-Node-1', delay: 32 },
+      { name: 'JP-Node-1', delay: 45 },
+      { name: 'TW-Node-1', delay: 55 },
+      { name: 'KR-Node-1', delay: 67 },
+      { name: 'SG-Node-1', delay: 89 },
+    ]
+  },
+  {
+    name: 'Fallback',
+    type: 'Fallback',
+    typeClass: 'type-fallback',
+    current: 'US-Node-1',
+    proxies: [
+      { name: 'US-Node-1', delay: 120 },
+      { name: 'US-Node-2', delay: 145 },
+      { name: 'DE-Node-1', delay: 210 },
+    ]
+  },
+  {
+    name: 'Load-Balance',
+    type: 'Load-Balance',
+    typeClass: 'type-load',
+    current: '-',
+    proxies: [
+      { name: 'JP-Node-1', delay: 45 },
+      { name: 'US-Node-1', delay: 120 },
+      { name: 'SG-Node-1', delay: 89 },
+      { name: 'HK-Node-1', delay: 32 },
+      { name: 'KR-Node-1', delay: 67 },
+    ]
+  }
+];
+
+let proxyFilter = 'all';
+
+function renderProxies(filter) {
+  proxyFilter = filter || proxyFilter;
+  const container = document.getElementById('proxyGroups');
+  const filtered = filter === 'all' ? proxyGroupsData : proxyGroupsData.filter(g => g.type.toLowerCase().replace('-','') === filter);
+  
+  container.innerHTML = filtered.map((group, gi) => `
+    <div class="proxy-group" data-type="${group.type.toLowerCase()}">
+      <div class="proxy-group-header" onclick="toggleProxyGroup(${gi})">
+        <div class="proxy-group-info">
+          <span class="proxy-group-name">${group.name}</span>
+          <span class="proxy-group-type ${group.typeClass}">${group.type}</span>
+          <span class="proxy-group-current">→ ${group.current}</span>
+        </div>
+        <div class="proxy-group-toggle" id="pg-toggle-${gi}">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+      </div>
+      <div class="proxy-list" id="pg-list-${gi}">
+        ${group.proxies.map((proxy, pi) => `
+          <div class="proxy-item ${proxy.name === group.current ? 'active' : ''}" onclick="selectProxy(${gi}, ${pi})">
+            <div class="proxy-radio"></div>
+            <span class="proxy-name">${proxy.name}</span>
+            <span class="proxy-delay ${getDelayClass(proxy.delay)}">${proxy.delay === 0 ? 'Timeout' : proxy.delay + 'ms'}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+function getDelayClass(delay) {
+  if (delay === 0) return 'delay-timeout';
+  if (delay < 60) return 'delay-fast';
+  if (delay < 150) return 'delay-medium';
+  return 'delay-slow';
+}
+
+function toggleProxyGroup(idx) {
+  const list = document.getElementById('pg-list-' + idx);
+  const toggle = document.getElementById('pg-toggle-' + idx);
+  list.classList.toggle('open');
+  toggle.classList.toggle('open');
+}
+
+function selectProxy(groupIdx, proxyIdx) {
+  const group = proxyGroupsData[groupIdx];
+  group.current = group.proxies[proxyIdx].name;
+  renderProxies(proxyFilter);
+  // Reopen the group
+  document.getElementById('pg-list-' + groupIdx).classList.add('open');
+  document.getElementById('pg-toggle-' + groupIdx).classList.add('open');
+}
+
+function filterProxies(type, btn) {
+  document.querySelectorAll('#page-proxies .filter-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderProxies(type);
+}
+
+// Connections Data
+const connectionsData = [
+  { id: 1, host: 'github.com', type: 'HTTPS', chain: 'US-Node', rule: 'GitHub', protocol: 'TCP', upload: 12.4, download: 45.2, source: '192.168.1.100:52341' },
+  { id: 2, host: 'api.openai.com', type: 'HTTPS', chain: 'JP-Node', rule: 'OpenAI', protocol: 'TCP', upload: 8.1, download: 23.7, source: '192.168.1.101:49872' },
+  { id: 3, host: 'youtube.com', type: 'QUIC', chain: 'SG-Node', rule: 'YouTube', protocol: 'UDP', upload: 2.3, download: 156.8, source: '192.168.1.100:61234' },
+  { id: 4, host: 'cdn.jsdelivr.net', type: 'HTTPS', chain: 'HK-Node', rule: 'CDN', protocol: 'TCP', upload: 1.2, download: 34.5, source: '192.168.1.102:43210' },
+  { id: 5, host: 'discord.com', type: 'HTTPS', chain: 'US-Node', rule: 'Discord', protocol: 'TCP', upload: 0.8, download: 12.3, source: '192.168.1.100:55678' },
+  { id: 6, host: 'twitter.com', type: 'HTTPS', chain: 'JP-Node', rule: 'Twitter', protocol: 'TCP', upload: 3.4, download: 28.9, source: '192.168.1.103:39876' },
+  { id: 7, host: 'telegram.org', type: 'MTProto', chain: 'SG-Node', rule: 'Telegram', protocol: 'TCP', upload: 1.5, download: 8.7, source: '192.168.1.101:47654' },
+  { id: 8, host: 'steamcdn-a.akamaihd.net', type: 'HTTPS', chain: 'HK-Node', rule: 'Steam', protocol: 'TCP', upload: 0.3, download: 234.5, source: '192.168.1.104:38765' },
+];
+
+function renderConnections(data) {
+  const tbody = document.getElementById('connectionsBody');
+  const items = data || connectionsData;
+  document.getElementById('connCount').textContent = items.length;
+  tbody.innerHTML = items.map(conn => `
+    <tr onclick="showConnDetail(${conn.id})">
+      <td style="font-weight:500;">${conn.host}</td>
+      <td>${conn.type}</td>
+      <td><span class="chain-tag">${conn.chain}</span></td>
+      <td style="color:var(--text-secondary)">${conn.rule}</td>
+      <td><span class="protocol-tag ${conn.protocol === 'TCP' ? 'proto-tcp' : 'proto-udp'}">${conn.protocol}</span></td>
+      <td>${conn.upload.toFixed(1)} MB</td>
+      <td>${conn.download.toFixed(1)} MB</td>
+      <td style="color:var(--text-muted)">${conn.source}</td>
+      <td>
+        <button class="btn btn-danger" style="padding:4px 8px;font-size:11px;" onclick="event.stopPropagation();closeConn(${conn.id})">✕</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function closeConn(id) {
+  const idx = connectionsData.findIndex(c => c.id === id);
+  if (idx > -1) connectionsData.splice(idx, 1);
+  renderConnections();
+}
+
+function closeAllConns() {
+  connectionsData.length = 0;
+  renderConnections();
+}
+
+function showConnDetail(id) {
+  const conn = connectionsData.find(c => c.id === id);
+  if (!conn) return;
+  document.getElementById('connModalBody').innerHTML = `
+    <div class="detail-row"><span class="detail-label">Host</span><span class="detail-value">${conn.host}</span></div>
+    <div class="detail-row"><span class="detail-label">Type</span><span class="detail-value">${conn.type}</span></div>
+    <div class="detail-row"><span class="detail-label">Chain</span><span class="detail-value">${conn.chain}</span></div>
+    <div class="detail-row"><span class="detail-label">Rule</span><span class="detail-value">${conn.rule}</span></div>
+    <div class="detail-row"><span class="detail-label">Protocol</span><span class="detail-value">${conn.protocol}</span></div>
+    <div class="detail-row"><span class="detail-label">Upload</span><span class="detail-value">${conn.upload.toFixed(1)} MB</span></div>
+    <div class="detail-row"><span class="detail-label">Download</span><span class="detail-value">${conn.download.toFixed(1)} MB</span></div>
+    <div class="detail-row"><span class="detail-label">Source</span><span class="detail-value">${conn.source}</span></div>
+  `;
+  document.getElementById('connModal').classList.add('active');
+}
+
+function closeModal() {
+  document.getElementById('connModal').classList.remove('active');
+}
+
+document.getElementById('connModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// Rules Data
+const rulesData = [
+  { type: 'DOMAIN-SUFFIX', payload: 'google.com', proxy: 'Global' },
+  { type: 'DOMAIN-SUFFIX', payload: 'github.com', proxy: 'Global' },
+  { type: 'DOMAIN-SUFFIX', payload: 'openai.com', proxy: 'Global' },
+  { type: 'DOMAIN-KEYWORD', payload: 'steam', proxy: 'Direct' },
+  { type: 'DOMAIN-SUFFIX', payload: 'youtube.com', proxy: 'Global' },
+  { type: 'DOMAIN-SUFFIX', payload: 'twitter.com', proxy: 'Global' },
+  { type: 'IP-CIDR', payload: '192.168.0.0/16', proxy: 'Direct' },
+  { type: 'IP-CIDR', payload: '10.0.0.0/8', proxy: 'Direct' },
+  { type: 'GEOIP', payload: 'CN', proxy: 'Direct' },
+  { type: 'DOMAIN-SUFFIX', payload: 'telegram.org', proxy: 'Global' },
+  { type: 'DOMAIN-KEYWORD', payload: 'discord', proxy: 'Global' },
+  { type: 'DOMAIN-SUFFIX', payload: 'netflix.com', proxy: 'Global' },
+  { type: 'DOMAIN-SUFFIX', payload: 'spotify.com', proxy: 'Global' },
+  { type: 'GEOIP', payload: 'LAN', proxy: 'Direct' },
+  { type: 'DOMAIN-SUFFIX', payload: 'apple.com', proxy: 'Direct' },
+  { type: 'DOMAIN-SUFFIX', payload: 'microsoft.com', proxy: 'Direct' },
+  { type: 'PROCESS-NAME', payload: 'WeChat', proxy: 'Direct' },
+  { type: 'PROCESS-NAME', payload: 'QQ', proxy: 'Direct' },
+  { type: 'DOMAIN-SUFFIX', payload: 't.me', proxy: 'Global' },
+  { type: 'DOMAIN-KEYWORD', payload: 'whatsapp', proxy: 'Global' },
+  { type: 'IP-CIDR6', payload: 'fc00::/7', proxy: 'Direct' },
+  { type: 'DOMAIN-SUFFIX', payload: 'tiktok.com', proxy: 'Global' },
+  { type: 'DOMAIN-SUFFIX', payload: 'instagram.com', proxy: 'Global' },
+  { type: 'MATCH', payload: 'Final', proxy: 'Direct' },
+];
+
+function renderRules(data) {
+  const container = document.getElementById('rulesList');
+  const items = data || rulesData;
+  document.getElementById('ruleCount').textContent = items.length;
+  container.innerHTML = items.map((rule, idx) => `
+    <div class="rule-item">
+      <div class="rule-index">${idx + 1}</div>
+      <div class="rule-type">${rule.type}</div>
+      <div class="rule-payload">${rule.payload}</div>
+      <div class="rule-proxy">${rule.proxy}</div>
+    </div>
+  `).join('');
+}
+
+function filterRules(query) {
+  if (!query) { renderRules(); return; }
+  const q = query.toLowerCase();
+  const filtered = rulesData.filter(r =>
+    r.type.toLowerCase().includes(q) ||
+    r.payload.toLowerCase().includes(q) ||
+    r.proxy.toLowerCase().includes(q)
+  );
+  renderRules(filtered);
+}
+
+// Logs Data
+const logsData = [
+  { time: '14:32:01', level: 'info', msg: '[TCP] github.com:443 match Domain-Suffix using Global' },
+  { time: '14:32:02', level: 'info', msg: '[UDP] dns.google.com:53 match GeoIP(CN) using Direct' },
+  { time: '14:32:05', level: 'warn', msg: '[Proxy] US-Node-1 connection timeout, switching to fallback' },
+  { time: '14:32:08', level: 'info', msg: '[TCP] api.openai.com:443 match Domain-Suffix using Global' },
+  { time: '14:32:12', level: 'info', msg: '[DNS] cache hit for youtube.com -> 142.250.80.46' },
+  { time: '14:32:15', level: 'error', msg: '[Proxy] KR-Node-1 TLS handshake failed: connection reset' },
+  { time: '14:32:18', level: 'info', msg: '[TCP] cdn.jsdelivr.net:443 match Domain-Suffix using Global' },
+  { time: '14:32:22', level: 'info', msg: '[TUN] new connection from 192.168.1.100:52341' },
+  { time: '14:32:25', level: 'debug', msg: '[Rule] testing rule #12 DOMAIN-SUFFIX netflix.com' },
+  { time: '14:32:28', level: 'info', msg: '[TCP] steamcdn-a.akamaihd.net:443 match Domain-Keyword using Direct' },
+  { time: '14:32:32', level: 'warn', msg: '[DNS] resolution failed for example.invalid: NXDOMAIN' },
+  { time: '14:32:35', level: 'info', msg: '[TCP] discord.com:443 match Domain-Keyword using Global' },
+];
+
+let logFilter = 'all';
+
+function renderLogs(filter) {
+  logFilter = filter || logFilter;
+  const container = document.getElementById('logContainer');
+  const items = logFilter === 'all' ? logsData : logsData.filter(l => l.level === logFilter);
+  container.innerHTML = items.map(log => `
+    <div class="log-entry" data-level="${log.level}">
+      <span class="log-time">${log.time}</span>
+      <span class="log-level ${log.level}">[${log.level.toUpperCase()}]</span>
+      <span class="log-msg">${log.msg}</span>
+    </div>
+  `).join('');
+  container.scrollTop = container.scrollHeight;
+}
+
+function filterLogs(level, btn) {
+  document.querySelectorAll('#page-logs .filter-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderLogs(level);
+}
+
+// Settings
+function toggleSetting(el) {
+  el.classList.toggle('active');
+}
+
+// Global Search
+function handleSearch(query) {
+  if (!query) return;
+  const q = query.toLowerCase();
+  // Simple search across current page
+  if (document.getElementById('page-proxies').classList.contains('active')) {
+    // filter proxies
+  }
+}
+
+// Actions
+function testAllProxies() {
+  showToast('Testing all proxies...');
+  proxyGroupsData.forEach(group => {
+    group.proxies.forEach(proxy => {
+      proxy.delay = Math.floor(Math.random() * 200) + 20;
+    });
+  });
+  renderProxies(proxyFilter);
+  setTimeout(() => showToast('All proxies tested!'), 1500);
+}
+
+function flushFakeIP() {
+  showToast('Fake IP cache flushed');
+}
+
+function reloadConfig() {
+  showToast('Configuration reloaded');
+}
+
+// Toast notification
+function showToast(message) {
+  const toast = document.createElement('div');
+  toast.style.cssText = `
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    padding: 12px 20px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 500;
+    z-index: 300;
+    animation: fadeIn 0.3s ease;
+    box-shadow: var(--shadow);
+  `;
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(10px)';
+    toast.style.transition = 'all 0.3s ease';
+    setTimeout(() => toast.remove(), 300);
+  }, 2000);
+}
+
+// Live update simulation
+function simulateLiveUpdates() {
+  // Update connections count
+  const count = Math.floor(Math.random() * 20) + 35;
+  document.getElementById('connCount').textContent = count;
+  
+  // Update speed data
+  updateSpeedData();
+  
+  // Update active connections display
+  document.getElementById('activeConns').textContent = count;
+}
+
+// Initialize
+function init() {
+  initSpeedData();
+  renderSpeedChart();
+  renderProxies();
+  renderConnections();
+  renderRules();
+  renderLogs();
+  
+  // Auto-open first proxy group
+  toggleProxyGroup(0);
+  
+  // Start live updates
+  setInterval(simulateLiveUpdates, 2000);
+  
+  // Add new log entries periodically
+  setInterval(() => {
+    const now = new Date();
+    const timeStr = now.toTimeString().slice(0, 8);
+    const messages = [
+      '[TCP] example.com:443 match Domain-Suffix using Global',
+      '[DNS] cache hit for cdn.example.com -> 93.184.216.34',
+      '[Proxy] SG-Node-1 latency test: 78ms',
+      '[TUN] connection closed from 192.168.1.105:48321',
+      '[Rule] no match found, using Final rule',
+      '[UDP] dns.cloudflare.com:53 match Direct',
+    ];
+    const levels = ['info', 'info', 'info', 'debug', 'warn', 'info'];
+    const idx = Math.floor(Math.random() * messages.length);
+    logsData.push({ time: timeStr, level: levels[idx], msg: messages[idx] });
+    if (logsData.length > 100) logsData.shift();
+    if (logFilter === 'all' || logFilter === levels[idx]) {
+      renderLogs(logFilter);
+    }
+  }, 3000);
+}
+
+// Handle window resize
+window.addEventListener('resize', () => {
+  renderSpeedChart();
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closeModal();
+  }
+  if (e.ctrlKey || e.metaKey) {
+    switch(e.key) {
+      case '1': e.preventDefault(); switchPage('dashboard'); break;
+      case '2': e.preventDefault(); switchPage('proxies'); break;
+      case '3': e.preventDefault(); switchPage('connections'); break;
+      case '4': e.preventDefault(); switchPage('rules'); break;
+      case '5': e.preventDefault(); switchPage('logs'); break;
+    }
+  }
+});
+
+init();
+</script>
+</body>
+</html>
